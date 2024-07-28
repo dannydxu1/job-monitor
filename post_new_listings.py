@@ -110,18 +110,24 @@ def read_csv():
     return listings
 
 
-def write_csv(listings):
-    header = ["company", "job_title", "link", "date_posted"]
-    csv_content = ",".join(header) + "\n"
-    for listing in listings:
-        print(".")
-        csv_content += ",".join(listing[:4]) + "\n"
+def append_to_csv(new_listings):
+    if not new_listings:
+        return
+
     try:
         contents = repo.get_contents(CSV_FILE_PATH)
-        repo.update_file(
-            contents.path, "Update job listings", csv_content, contents.sha
-        )
-    except Exception as e:
+        csv_content = contents.decoded_content.decode()
+        new_csv_content = csv_content.strip() + "\n"
+        for listing in new_listings:
+            new_csv_content += ",".join(listing[:4]) + "\n"
+        repo.update_file(contents.path, "Append new job listings", new_csv_content, contents.sha)
+
+    except Exception:
+        # Create the file if it doesn't exist
+        header = ["company", "job_title", "link", "date_posted"]
+        csv_content = ",".join(header) + "\n"
+        for listing in new_listings:
+            csv_content += ",".join(listing[:4]) + "\n"
         repo.create_file(CSV_FILE_PATH, "Create job listings file", csv_content)
 
 
@@ -135,23 +141,19 @@ def main():
     header = f"**Job Listings for {today}**\n\n"
 
     message = header
-    new_listings_found = False
+    new_listings = []
     existing_listings = read_csv()
 
     for company, job_title, link, date_posted, formatted_listing in listings:
-        # Check if the listing already exists in the CSV file
         if (company, job_title, link, date_posted) not in existing_listings:
-            new_listings_found = True
-            # Add the listing to the message
             message += f"{formatted_listing}\n"
-            # Add the listing to the CSV content
-            existing_listings.append((company, job_title, link, date_posted))
+            new_listings.append((company, job_title, link, date_posted))
 
-    if new_listings_found:
-        write_csv(existing_listings)
-    # parts = split_message(message)
-    # for part in parts:
-    #     send_discord_alert(part)
+    if len(new_listings) > 0:
+        append_to_csv(new_listings)
+        parts = split_message(message)
+        for part in parts:
+            send_discord_alert(part)
 
 
 if __name__ == "__main__":
