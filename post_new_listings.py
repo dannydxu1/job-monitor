@@ -12,7 +12,7 @@ load_dotenv()  # Load environment variables from .env file
 REPO_URL = os.getenv("JOB_REPO_URL")
 LISTINGS_WEBHOOK_URL = os.getenv("LISTINGS_WEBHOOK_URL")
 LOGS_WEBHOOK_URL = os.getenv("LOGS_WEBHOOK_URL")
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+GITHUB_TOKEN = os.getenv("TOKEN_GITHUB")
 REPO_NAME = os.getenv("REPO_NAME")  # Format: "username/repo"
 CSV_FILE_PATH = "./listings.csv"
 
