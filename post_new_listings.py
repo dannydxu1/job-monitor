@@ -30,10 +30,10 @@ def fetch_readme(url):
 def parse_readme(content):
     listings = []
 
-    pattern_unlinked = re.compile(
+    listing_pattern = re.compile(
         r'\| ([^|]+) \| ([^|]+) \| [^|]+ \| (<a href="[^"]+"><img src="[^"]+" width="\d+" alt="Apply"></a>.*?) \| (\w+ \d{2}) \|'
     )
-    pattern_arrow = re.compile(
+    arrow_listing_pattern = re.compile(
         r'\| ↳ \| ([^|]+) \| ([^|]+) \| (<a href="[^"]+"><img src="[^"]+" width="\d+" alt="Apply"></a>.*?) \| (\w+ \d{2}) \|'
     )
 
@@ -42,8 +42,8 @@ def parse_readme(content):
     last_company = ""
     for line in lines:
         unlinked_match, arrow_match = (
-            pattern_unlinked.match(line),
-            pattern_arrow.match(line),
+            listing_pattern.match(line),
+            arrow_listing_pattern.match(line),
         )
         match = unlinked_match
 
@@ -55,6 +55,8 @@ def parse_readme(content):
                 company = company_pattern_match.group(1)
             if "↳" in company:  # this has to be after the first company assignment
                 company = last_company
+            job_title = job_title.replace(",", "")
+            job_title = job_title.replace("🛂", "")
             link_match = re.search(r'href="([^"]+)"', link_html)
             link = f"<{link_match.group(1)}>" if link_match else "No link found"
             formatted_listing = f"**{company}** - {job_title}\nApply: {link}\nDate Posted: {date_posted}"
@@ -95,6 +97,14 @@ def split_message(message, limit=2000):
         parts.append(current_part)
     return parts
 
+def create_csv():
+    header = ["company", "job_title", "link", "date_posted"]
+    csv_content = ",".join(header) + "\n"
+    try:
+        repo.create_file(CSV_FILE_PATH, "Create job listings file", csv_content)
+        print(f"Created {CSV_FILE_PATH} successfully.")
+    except Exception as e:
+        print(f"Error creating CSV file: {e}")
 
 def read_csv():
     listings = []
@@ -107,6 +117,16 @@ def read_csv():
             listings.append(tuple(row))
     except Exception as e:
         print(f"Error reading CSV file: {e}")
+        create_csv()  # Create the file if it does not exist
+        try:
+            contents = repo.get_contents(CSV_FILE_PATH)
+            decoded_content = contents.decoded_content.decode()
+            reader = csv.reader(decoded_content.splitlines())
+            next(reader)  # Skip header
+            for row in reader:
+                listings.append(tuple(row))
+        except Exception as e:
+            print(f"Error reading newly created CSV file: {e}")
     return listings
 
 
@@ -148,6 +168,8 @@ def main():
         if (company, job_title, link, date_posted) not in existing_listings:
             message += f"{formatted_listing}\n"
             new_listings.append((company, job_title, link, date_posted))
+        # else:
+        #     print(f"Listing already exists: {company} - {job_title}")
 
     if len(new_listings) > 0:
         append_to_csv(new_listings)
