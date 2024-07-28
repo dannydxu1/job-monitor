@@ -170,7 +170,7 @@ def main():
             new_listings.append((company, job_title, link, date_posted))
         # else:
         #     print(f"Listing already exists: {company} - {job_title}")
-
+    print (f"Found {len(new_listings)} new listings and {len(existing_listings)} existing listings.")
     if len(new_listings) > 0:
         append_to_csv(new_listings)
         parts = split_message(message)

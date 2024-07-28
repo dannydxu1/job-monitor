@@ -1,0 +1,35 @@
+name: Run Script
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # runs 30 minutes
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.10.12
+
+    - name: Install dependencies
+      run: |
+        python -m venv .venv
+        source .venv/bin/activate
+        pip install -r requirements.txt
+
+    - name: Run script
+      run: |
+        source .venv/bin/activate
+        python your_script.py
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        JOB_REPO_URL: ${{ secrets.JOB_REPO_URL }}
+        LISTINGS_WEBHOOK_URL: ${{ secrets.LISTINGS_WEBHOOK_URL }}
+        LOGS_WEBHOOK_URL: ${{ secrets.LOGS_WEBHOOK_URL }}
+        REPO_NAME: ${{ secrets.REPO_NAME }}
