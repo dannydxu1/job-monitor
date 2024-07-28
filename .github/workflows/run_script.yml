@@ -27,7 +27,7 @@ jobs:
     - name: Run script
       run: |
         source .venv/bin/activate
-        python your_script.py
+        python post_new_listings.py
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         JOB_REPO_URL: ${{ secrets.JOB_REPO_URL }}
