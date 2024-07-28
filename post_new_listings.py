@@ -5,6 +5,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 import os
 from github import Github
+import sys
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -19,6 +20,9 @@ CSV_FILE_PATH = "./listings.csv"
 # GitHub instance
 github = Github(GITHUB_TOKEN)
 repo = github.get_repo(REPO_NAME)
+
+log_file = open('logs.txt', 'w')
+sys.stdout = log_file
 
 
 def fetch_readme(url):
@@ -180,3 +184,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    log_file.close()

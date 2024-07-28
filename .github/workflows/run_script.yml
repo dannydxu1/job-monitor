@@ -2,7 +2,8 @@ name: Run Script
 
 on:
   schedule:
-    - cron: '*/30 * * * *'  # runs 30 minutes
+    - cron: '*/30 * * * *'  # This schedules the workflow to run every 30 minutes
+  workflow_dispatch:  # Allows manual triggering of the workflow
 
 jobs:
   run-script:
@@ -15,7 +16,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.10.12
+        python-version: 3.8  # Specify the version of Python you need
 
     - name: Install dependencies
       run: |
@@ -33,3 +34,10 @@ jobs:
         LISTINGS_WEBHOOK_URL: ${{ secrets.LISTINGS_WEBHOOK_URL }}
         LOGS_WEBHOOK_URL: ${{ secrets.LOGS_WEBHOOK_URL }}
         REPO_NAME: ${{ secrets.REPO_NAME }}
+
+    - name: Upload Logs
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: script-logs
+        path: logs.txt
