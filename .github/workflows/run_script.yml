@@ -29,7 +29,7 @@ jobs:
         source .venv/bin/activate
         python post_new_listings.py
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
         JOB_REPO_URL: ${{ secrets.JOB_REPO_URL }}
         LISTINGS_WEBHOOK_URL: ${{ secrets.LISTINGS_WEBHOOK_URL }}
         LOGS_WEBHOOK_URL: ${{ secrets.LOGS_WEBHOOK_URL }}

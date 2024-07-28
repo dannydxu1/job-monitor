@@ -183,6 +183,5 @@ def main():
 
 
 if __name__ == "__main__":
-    print(CSV_FILE_PATH)
     main()
     log_file.close()
