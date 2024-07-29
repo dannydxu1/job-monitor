@@ -21,7 +21,7 @@ CSV_FILE_PATH = "./listings.csv"
 github = Github(GITHUB_TOKEN)
 repo = github.get_repo(REPO_NAME)
 
-log_file = open('logs.txt', 'w')
+log_file = open("logs.txt", "w")
 sys.stdout = log_file
 
 
@@ -101,6 +101,7 @@ def split_message(message, limit=2000):
         parts.append(current_part)
     return parts
 
+
 def create_csv():
     header = ["company", "job_title", "link", "date_posted"]
     csv_content = ",".join(header) + "\n"
@@ -109,6 +110,7 @@ def create_csv():
         print(f"Created {CSV_FILE_PATH} successfully.")
     except Exception as e:
         print(f"Error creating CSV file: {e}")
+
 
 def read_csv():
     listings = []
@@ -144,7 +146,9 @@ def append_to_csv(new_listings):
         new_csv_content = csv_content.strip() + "\n"
         for listing in new_listings:
             new_csv_content += ",".join(listing[:4]) + "\n"
-        repo.update_file(contents.path, "Append new job listings", new_csv_content, contents.sha)
+        repo.update_file(
+            contents.path, "Append new job listings", new_csv_content, contents.sha
+        )
 
     except Exception:
         # Create the file if it doesn't exist
@@ -156,10 +160,6 @@ def append_to_csv(new_listings):
 
 
 def main():
-    bot_health_message = "bot is running at " + datetime.now().strftime(
-        "%Y-%m-%d %H:%M:%S"
-    )
-    send_discord_alert(bot_health_message, LOGS_WEBHOOK_URL)
     listings = fetch_github_listings()
     today = datetime.now().strftime("%Y-%m-%d")
     header = f"**Job Listings for {today}**\n\n"
@@ -174,12 +174,14 @@ def main():
             new_listings.append((company, job_title, link, date_posted))
         # else:
         #     print(f"Listing already exists: {company} - {job_title}")
-    print (f"Found {len(new_listings)} new listings and {len(existing_listings)} existing listings.")
+
+    result_message = f"Found {len(new_listings)} new listings and {len(existing_listings)} existing listings."
     if len(new_listings) > 0:
         append_to_csv(new_listings)
         parts = split_message(message)
         for part in parts:
             send_discord_alert(part)
+    send_discord_alert(result_message, LOGS_WEBHOOK_URL)
 
 
 if __name__ == "__main__":
