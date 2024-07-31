@@ -37,6 +37,7 @@ jobs:
         LISTINGS_WEBHOOK_URL: ${{ secrets.LISTINGS_WEBHOOK_URL }}
         LOGS_WEBHOOK_URL: ${{ secrets.LOGS_WEBHOOK_URL }}
         REPO_NAME: ${{ secrets.REPO_NAME }}
+        SECONDARY_REPO_URL: ${{ secrets.SECONDARY_REPO_URL }}
 
     - name: Upload Logs
       if: always()
