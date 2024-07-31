@@ -20,6 +20,9 @@ CSV_FILE_PATH = "./listings.csv"
 github = Github(GITHUB_TOKEN)
 repo = github.get_repo(REPO_NAME)
 
+log_file = open("logs.txt", "w")
+sys.stdout = log_file
+
 
 def process_match_groups(company, job_title, link_html, last_company):
     company_pattern = re.compile(r"\*\*\[([^\]]+)\]")
@@ -393,3 +396,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    log_file.close
