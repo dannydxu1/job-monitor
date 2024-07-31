@@ -122,6 +122,7 @@ def create_csv():
 
 def read_csv():
     listings = set()
+    c = 0
     try:
         contents = repo.get_contents(CSV_FILE_PATH)
         decoded_content = contents.decoded_content.decode()
@@ -129,6 +130,7 @@ def read_csv():
         next(reader)  # Skip header
         for row in reader:
             listings.add(tuple(row))
+            c += 1
     except Exception as e:
         print(f"Error reading CSV file: {e}")
         create_csv()  # Create the file if it does not exist
@@ -141,6 +143,7 @@ def read_csv():
                 listings.add(tuple(row))
         except Exception as e:
             print(f"Error reading newly created CSV file: {e}")
+    print(f"CSV began with {c} unique rows")
     return listings
 
 
@@ -266,19 +269,23 @@ def remove_duplicates(current, primary, secondary):
     new_listings = []  # stores the formatted listings
     dupe = 0
     # Process Secondary Listings
+    pt = 0
+    pa = 0
+    sa = 0
+    st = 0
     for company, jobs in secondary.items():
         for job_title, details in jobs.items():
             current_listing = (
                 company,
                 job_title,
-                details["link"],
+                details["link"][1:-1],
                 details["date_posted"],
             )
-            current.add(current_listing)
+            st += 1
             if current_listing not in current:
                 new_listings.append(details["formatted_listing"])
-            else:
-                print("Secondary listing already in CSV file")
+                current.add(current_listing)
+                sa += 1
 
     # Process Primary Listings
     for company, jobs in primary.items():
@@ -288,7 +295,7 @@ def remove_duplicates(current, primary, secondary):
         ) in (
             jobs.items()
         ):  # Process the current primary listing, check if it is a duplicate
-
+            pt += 1
             seconday_company_dict = secondary.get(company)
             in_secondary = False
             if (
@@ -320,14 +327,15 @@ def remove_duplicates(current, primary, secondary):
             current_listing = (
                 company,
                 job_title,
-                details["link"],
+                details["link"][1:-1],
                 details["date_posted"],
             )
-            print("f1")
             if current_listing not in current:
                 current.add(current_listing)
-                print("f2")
+                pa += 1
                 new_listings.append(details["formatted_listing"])
+    print(f"Total Primary Listings: {pt} | Total Secondary Listings: {st} | Total Listings: {pt+st}")
+    print(f"New Primary Listings: {pa} | New Secondary Listings: {sa} | Total New Listings: {pa+sa}")
     return new_listings
 
 
@@ -352,22 +360,16 @@ def print_listing_tuples(listings):
 
 def create_and_send_discord_message(new_listings):
     today = datetime.now().strftime("%Y-%m-%d")
-    header = f"**Job Listings for {today}**\n"
+    header = f"**Job Listings for {today} <@&{1252355260161327115}>!**\n"
     message = header
-    new_listing_tuples = []
 
     for listing in new_listings:
         message += f"{listing}\n"
-        listing_tuple = extract_listing_details(listing)
-        if listing_tuple:
-            new_listing_tuples.append(listing_tuple)
 
-    append_to_csv(new_listing_tuples)  # Saves listing to CSV
-    # parts = split_message(message)
-    # for part in parts:
-    #     send_discord_alert(part)
-    #     print(part)
-    # send_discord_alert(f"Found {len(new_listings)} new listings .", LOGS_WEBHOOK_URL)
+    parts = split_message(message)
+    for part in parts:
+        send_discord_alert(part)
+    send_discord_alert(f"Found {len(new_listings)} new listings", LOGS_WEBHOOK_URL)
 
 
 def main():
@@ -379,9 +381,14 @@ def main():
         current_listings, primary_listings, secondary_listings
     )
 
-    print(len(new_listings))
     if len(new_listings) > 0:
         create_and_send_discord_message(new_listings)
+        new_listing_tuples = []  # Convert each new listing to tuple and save it to CSV
+        for listing in new_listings:
+            listing_tuple = extract_listing_details(listing)
+            if listing_tuple:
+                new_listing_tuples.append(listing_tuple)
+        append_to_csv(new_listing_tuples)
 
 
 if __name__ == "__main__":
