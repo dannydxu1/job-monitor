@@ -22,6 +22,7 @@ repo = github.get_repo(REPO_NAME)
 
 log_file = open("logs.txt", "w")
 sys.stdout = log_file
+result_message = "" 
 
 
 def process_match_groups(company, job_title, link_html, last_company):
@@ -337,8 +338,8 @@ def remove_duplicates(current, primary, secondary):
                 current.add(current_listing)
                 pa += 1
                 new_listings.append(details["formatted_listing"])
-    print(f"Total Primary Listings: {pt} | Total Secondary Listings: {st} | Total Listings: {pt+st}")
-    print(f"New Primary Listings: {pa} | New Secondary Listings: {sa} | Total New Listings: {pa+sa}")
+    result_message = f"Total Primary Listings: {pt} | Total Secondary Listings: {st} | Total Listings: {pt+st}\nNew Primary Listings: {pa} | New Secondary Listings: {sa} | Total New Listings: {pa+sa}"
+    print(result_message)
     return new_listings
 
 
@@ -392,6 +393,7 @@ def main():
             if listing_tuple:
                 new_listing_tuples.append(listing_tuple)
         append_to_csv(new_listing_tuples)
+        send_discord_alert(result_message, LOGS_WEBHOOK_URL)
 
 
 if __name__ == "__main__":
