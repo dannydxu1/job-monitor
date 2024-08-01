@@ -373,7 +373,8 @@ def create_and_send_discord_message(new_listings):
     parts = split_message(message)
     for part in parts:
         send_discord_alert(part)
-    send_discord_alert(f"Found {len(new_listings)} new listings", LOGS_WEBHOOK_URL)
+    new_listings_message = f"Found {len(new_listings)} new listings"
+    send_discord_alert(new_listings_message, LOGS_WEBHOOK_URL)
 
 
 def main():
