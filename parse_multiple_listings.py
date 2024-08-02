@@ -26,6 +26,18 @@ result_message = ""
 
 
 def process_match_groups(company, job_title, link_html, last_company):
+    """
+    Formats the match groups from a company, job title, and link HTML.
+
+    Args:
+        company (str): The company name.
+        job_title (str): The job title.
+        link_html (str): The HTML containing the link.
+        last_company (str): The last company name.
+
+    Returns:
+        tuple: A tuple containing the processed company name, job title, and link.
+    """
     company_pattern = re.compile(r"\*\*\[([^\]]+)\]")
     company_pattern_match = company_pattern.search(company)
     if company_pattern_match:
@@ -41,6 +53,27 @@ def process_match_groups(company, job_title, link_html, last_company):
 
 
 def parse_readme(content):
+    """
+    Parses a README file and extracts job listings from it.
+
+    Args:
+        content (str): The content of the README file.
+
+    Returns:
+        dict: A dictionary containing the extracted job listings. The dictionary
+              has the following structure:
+              {
+                  "Company": {
+                      "Job Title": {
+                          "link": str,
+                          "date_posted": str,
+                          "formatted_listing": str
+                      },
+                      ...
+                  },
+                  ...
+              }
+    """
     listings = (
         {}
     )  # {Company: {Job Title: {link, date_posted, formatted_listing}, ...}, ...}
@@ -80,6 +113,29 @@ def parse_readme(content):
 
 
 def fetch_github_listings(url):
+    """
+    Fetches job listings from a GitHub repository by making a GET request to the specified URL.
+    
+    Args:
+        url (str): The URL of the GitHub repository's README in raw format.
+        
+    Returns:
+        dict: A dictionary containing job listings parsed from the README content. The dictionary has the following structure:
+            {
+                Company: {
+                    Job Title: {
+                        link: str,
+                        date_posted: str,
+                        formatted_listing: str
+                    },
+                    ...
+                },
+                ...
+            }
+    
+    Raises:
+        requests.exceptions.HTTPError: If the request to the specified URL fails.
+    """
     response = requests.get(url)
     response.raise_for_status()
     readme = response.text
@@ -88,6 +144,16 @@ def fetch_github_listings(url):
 
 
 def send_discord_alert(message, target_url=LISTINGS_WEBHOOK_URL):
+    """
+    Sends a Discord alert message to the specified webhook URL.
+
+    Args:
+        message (str): The content of the message to be sent.
+        target_url (str, optional): The URL of the Discord webhook. Defaults to LISTINGS_WEBHOOK_URL.
+
+    Raises:
+        Exception: If the message fails to send, an exception is raised with the status code and response text.
+    """
     data = {"content": message}
     headers = {"Content-Type": "application/json"}
     response = requests.post(target_url, json=data, headers=headers)
@@ -98,6 +164,21 @@ def send_discord_alert(message, target_url=LISTINGS_WEBHOOK_URL):
 
 
 def split_message(message, limit=2000):
+    """
+    Splits a message into multiple parts based on a character limit per part.
+
+    Args:
+        message (str): The message to be split.
+        limit (int, optional): The maximum number of characters per part. Defaults to 2000.
+
+    Returns:
+        list: A list of strings representing the split message.
+
+    Example:
+        >>> message = "This is a long message that needs to be split into multiple parts."
+        >>> split_message(message)
+        ['This is a long message that needs to be split into', 'multiple parts.']
+    """
     lines = message.split("\n")
     parts = []
     current_part = ""
@@ -115,6 +196,15 @@ def split_message(message, limit=2000):
 
 
 def create_csv():
+    """
+    Creates a CSV file with the specified header and initializes it with empty data.
+
+    This function creates a CSV file with the specified header and initializes it with empty data.
+    The header is a list containing the column names for the CSV file.
+    The CSV file is created in the specified `CSV_FILE_PATH` using the `repo.create_file` method.
+    If the file creation is successful, a success message is printed.
+    If an exception occurs during file creation, an error message is printed with the exception details.
+    """
     header = ["company", "job_title", "link", "date_posted"]
     csv_content = ",".join(header) + "\n"
     try:
@@ -125,6 +215,20 @@ def create_csv():
 
 
 def read_csv():
+    """
+    Reads a CSV file and returns a set of unique rows.
+
+    This function reads a CSV file specified by `CSV_FILE_PATH` and returns a set of unique rows. 
+    The function first attempts to read the file and parse its contents. If an exception occurs, 
+    indicating that the file does not exist or cannot be read, the function attempts to create 
+    the file by calling the `create_csv` function. If the file creation is successful, the function 
+    reads the newly created file and adds its rows to the set. If an exception occurs during the 
+    file creation or reading, an error message is printed with the exception details. Finally, the 
+    function prints the number of unique rows in the CSV file and returns the set of unique rows.
+
+    Returns:
+        set: A set of unique rows from the CSV file.
+    """
     listings = set()
     c = 0
     try:
@@ -211,6 +315,15 @@ def print_listings(listings):
 
 
 def process_listings(url):
+    """
+    Process the listings from a given repository README URL and return a dictionary of job listings.
+
+    Args:
+        url (str): The URL of the page containing the listings.
+
+    Returns:
+        dict: A dictionary containing the job listings, where the keys are company names and the values are dictionaries with job titles as keys and a dictionary of link, date_posted, and formatted_listing as values.
+    """
     response = requests.get(url)
     response.raise_for_status()
     content = response.text
@@ -253,6 +366,15 @@ def process_listings(url):
 
 
 def remove_utm_source(url):
+    """
+    Removes the specified substrings from the given URL.
+
+    Args:
+        url (str): The URL from which to remove the substrings.
+
+    Returns:
+        str: The URL with the specified substrings removed.
+    """
     substrings_to_remove = [
         "&utm_source=Simplify&ref=Simplify",
         "?utm_source=Simplify&ref=Simplify",
@@ -262,14 +384,23 @@ def remove_utm_source(url):
 
     # Remove each substring from the url
     for substring in substrings_to_remove:
-        # if substring in url:
-        #     print("removed")
         url = url.replace(substring, "")
 
     return url
 
 
 def remove_duplicates(current, primary, secondary):
+    """
+    Removes duplicate job listings from the primary and secondary job listings and avoids duplicating current job listings.
+
+    Args:
+        current (set): A set of tuples representing the current job listings.
+        primary (dict): A dictionary containing the primary job listings, where the keys are company names and the values are dictionaries with job titles as keys and job details as values.
+        secondary (dict): A dictionary containing the secondary job listings, where the keys are company names and the values are dictionaries with job titles as keys and job details as values.
+
+    Returns:
+        list: A (ideally) unique list of formatted job listings.
+    """
     new_listings = []  # stores the formatted listings
     dupe = 0
     # Process Secondary Listings
@@ -344,6 +475,16 @@ def remove_duplicates(current, primary, secondary):
 
 
 def extract_listing_details(listing_str):
+    """
+    Extracts the details of a job listing from a given formatted string intended for Discord.
+
+    Args:
+        listing_str (str): The string containing the formatted job listing information.
+
+    Returns:
+        tuple or None: A tuple containing the company name (str), job title (str), link (str), and date posted (str), 
+                       or None if the input string does not match the expected pattern.
+    """
     # Define regex pattern to extract company, job_title, link, and date_posted
     pattern = re.compile(r"\*\*(.*?)\*\* - (.*?)\nApply: <(.*?)>\nDate Posted: (.*?)$")
     match = pattern.match(listing_str)
@@ -355,6 +496,30 @@ def extract_listing_details(listing_str):
 
 
 def print_listing_tuples(listings):
+    """
+    Prints the details of each listing in the given list of listings.
+
+    Args:
+        listings (List[str]): A list of strings representing job listings.
+
+    Returns:
+        None
+
+    This function iterates over each listing in the given list and extracts the
+    details of the listing using the `extract_listing_details` function. If the
+    details are successfully extracted, the company, job title, link, and date
+    posted are printed in the format "(company,job_title,link,date_posted)".
+
+    Example:
+        listings = [
+            "*Company A* - Software Engineer\nApply: <http://example.com/apply>\nDate Posted: Jul 29",
+            "*Company B* - Data Scientist\nApply: <http://example.com/apply>\nDate Posted: Jul 30"
+        ]
+        print_listing_tuples(listings)
+        # Output:
+        # (Company A,Software Engineer,http://example.com/apply,Jul 29)
+        # (Company B,Data Scientist,http://example.com/apply,Jul 30)
+    """
     for listing in listings:
         details = extract_listing_details(listing)
         if details:
@@ -363,16 +528,39 @@ def print_listing_tuples(listings):
 
 
 def create_and_send_discord_message(new_listings):
+    """
+    Creates a Discord message with new job listings and sends it to a specified webhook.
+
+    Args:
+        new_listings (List[str]): A list of new job listings.
+
+    Returns:
+        None
+
+    This function takes a list of new job listings and formats them into a Discord message.
+    The message includes the current date, a mention of a Discord role, and the listings.
+    The message is then split into multiple parts if it exceeds the Discord message length limit.
+    Each part is sent to a specified Discord webhook.
+    After sending all parts, the function sends a message indicating the number of new listings found.
+    """
+
+    # Format the current date and create the header of the Discord message
     today = datetime.now().strftime("%Y-%m-%d")
     header = f"**Job Listings for {today} <@&{1252355260161327115}>!**\n"
-    message = header
 
+    # Create the message with the new listings
+    message = header
     for listing in new_listings:
         message += f"{listing}\n"
 
+    # Split the message into multiple parts if necessary
     parts = split_message(message)
+
+    # Send each part of the message to the Discord webhook
     for part in parts:
         send_discord_alert(part)
+
+    # Send a message indicating the number of new listings found
     new_listings_message = f"Found {len(new_listings)} new listings"
     send_discord_alert(new_listings_message, LOGS_WEBHOOK_URL)
 
