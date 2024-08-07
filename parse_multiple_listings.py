@@ -582,7 +582,8 @@ def main():
             if listing_tuple:
                 new_listing_tuples.append(listing_tuple)
         append_to_csv(new_listing_tuples)
-        send_discord_alert(result_message, LOGS_WEBHOOK_URL)
+        if len(result_message) > 0:
+            send_discord_alert(result_message, LOGS_WEBHOOK_URL)
 
 
 if __name__ == "__main__":
