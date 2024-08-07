@@ -546,7 +546,7 @@ def create_and_send_discord_message(new_listings):
 
     # Format the current date and create the header of the Discord message
     today = datetime.now().strftime("%Y-%m-%d")
-    header = f"**Job Listings for {today} <@&{1252355260161327115}>!**\n"
+    header = f"**Job Listings for {today}!**\n"
 
     # Create the message with the new listings
     message = header
