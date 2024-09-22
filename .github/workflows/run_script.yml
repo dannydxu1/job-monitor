@@ -2,8 +2,6 @@ name: Scrape Jobs
 
 on:
   workflow_dispatch:  # Allows manual triggering of the workflow
-  schedule:
-    - cron: '0,30 * * * *'  # This schedules the workflow to run every 6 minutes
   push:
     branches:
       - main  # This triggers the workflow on new commits to the main branch
