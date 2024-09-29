@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - main  # This triggers the workflow on new commits to the main branch
+    schedule:
+    - cron: "*/5 * * * *"  # Runs the workflow every 1 minute
 
 jobs:
   run-script:
