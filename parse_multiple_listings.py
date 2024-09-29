@@ -143,24 +143,55 @@ def fetch_github_listings(url):
     return listings
 
 
-def send_discord_alert(message, target_url=LISTINGS_WEBHOOK_URL):
+# def send_discord_alert(message, target_url=LISTINGS_WEBHOOK_URL):
+#     """
+#     Sends a Discord alert message to the specified webhook URL.
+
+#     Args:
+#         message (str): The content of the message to be sent.
+#         target_url (str, optional): The URL of the Discord webhook. Defaults to LISTINGS_WEBHOOK_URL.
+
+#     Raises:
+#         Exception: If the message fails to send, an exception is raised with the status code and response text.
+#     """
+#     data = {"content": message}
+#     headers = {"Content-Type": "application/json"}
+#     response = requests.post(target_url, json=data, headers=headers)
+#     if response.status_code != 204:
+#         raise Exception(
+#             f"Failed to send message: {response.status_code}, {response.text}"
+#         )
+
+def send_discord_alert(message, target_url=LISTINGS_WEBHOOK_URL, delay=1, retries=3):
     """
-    Sends a Discord alert message to the specified webhook URL.
+    Sends a Discord alert message with retries and backoff in case of rate-limiting.
 
     Args:
         message (str): The content of the message to be sent.
         target_url (str, optional): The URL of the Discord webhook. Defaults to LISTINGS_WEBHOOK_URL.
+        delay (int, optional): The time to wait between messages in seconds. Defaults to 1 second.
+        retries (int, optional): The number of retries in case of rate-limiting. Defaults to 3.
 
     Raises:
-        Exception: If the message fails to send, an exception is raised with the status code and response text.
+        Exception: If the message fails to send after retries, an exception is raised.
     """
     data = {"content": message}
     headers = {"Content-Type": "application/json"}
-    response = requests.post(target_url, json=data, headers=headers)
-    if response.status_code != 204:
-        raise Exception(
-            f"Failed to send message: {response.status_code}, {response.text}"
-        )
+    
+    for attempt in range(retries):
+        response = requests.post(target_url, json=data, headers=headers)
+        
+        if response.status_code == 204:  # Success
+            time.sleep(delay)
+            return
+        elif response.status_code == 429:  # Rate-limited
+            retry_after = int(response.headers.get('Retry-After', 1))  # Get retry time from Discord headers
+            time.sleep(retry_after)  # Wait the specified time
+        else:
+            raise Exception(f"Failed to send message: {response.status_code}, {response.text}")
+
+    raise Exception(f"Failed to send message after {retries} retries")
+
 
 
 def split_message(message, limit=2000):
