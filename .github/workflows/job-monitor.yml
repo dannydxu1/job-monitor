@@ -28,6 +28,6 @@ jobs:
 
       # Step 4: Run the job monitor script
       - name: Run job monitor script
-        run: python monitor.py  # Adjust to the name of your script
+        run: python new_bot.py  # Adjust to the name of your script
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}  # Environment variable for Discord webhook
