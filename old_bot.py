@@ -70,13 +70,20 @@ def parse_readme(content):
                           "date_posted": str,
                           "formatted_listing": str
                       },
-                      ...
-                  },
-                  ...
-              }
-    """
-    listings = (
-        {}
+#     Args:
+#         message (str): The content of the message to be sent.
+#         target_url (str, optional): The URL of the Discord webhook. Defaults to LISTINGS_WEBHOOK_URL.
+
+#     Raises:
+#         Exception: If the message fails to send, an exception is raised with the status code and response text.
+#     """
+#     data = {"content": message}
+#     headers = {"Content-Type": "application/json"}
+#     response = requests.post(target_url, json=data, headers=headers)
+#     if response.status_code != 204:
+#         raise Exception(
+#             f"Failed to send message: {response.status_code}, {response.text}"
+#         )
     )  # {Company: {Job Title: {link, date_posted, formatted_listing}, ...}, ...}
     listing_pattern = re.compile(
         r'\| ([^|]+) \| ([^|]+) \| [^|]+ \| (<a href="[^"]+"><img src="[^"]+" width="\d+" alt="Apply"></a>.*?) \| (\w+ \d{2}) \|'
