@@ -4,12 +4,13 @@ import git
 from datetime import datetime, timedelta, timezone
 import requests
 import discord
+from dotenv import load_dotenv
 
-# Constants
+load_dotenv()
 REPO_URL = 'https://github.com/Ouckah/Summer2025-Internships'
 LOCAL_REPO_PATH = 'Summer2025-Internships'
 JSON_FILE_PATH = os.path.join(LOCAL_REPO_PATH, '.github', 'scripts', 'listings.json')
-DISCORD_WEBHOOK_URL = os.getenv('DISCORD_WEBHOOK_URL')
+DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1266849866617720862/Rjfd6mrSbWb1WQyadIOPX4DAZ6xje2wVGuGeCROZPpunIt0bLrC-pp4WU9b-SrUHkgPL"
 
 # Function to clone or update the repository
 def clone_or_update_repo():
@@ -77,7 +78,7 @@ def check_for_new_roles():
 
     # Get the current time (timezone-aware) and calculate the time window (e.g., 5 minutes ago)
     current_time = datetime.now(timezone.utc)
-    time_window = current_time - timedelta(minutes=5)
+    time_window = current_time - timedelta(minutes=30)
 
     # Find roles posted or updated within the last 5 minutes
     new_roles = [
@@ -85,13 +86,22 @@ def check_for_new_roles():
         if datetime.fromtimestamp(role['date_posted'], timezone.utc) > time_window
     ]
 
-    if new_roles:
-        print(f"Found {len(new_roles)} new roles.")
-        # Send Discord messages for new roles
-        for role in new_roles:
-            if role['is_visible'] and role['active']:
-                embed = format_embed_message(role)
-                send_discord_embed(embed)
+    old_roles = [
+        role for role in new_data
+        if datetime.fromtimestamp(role['date_posted'], timezone.utc) <= time_window
+    ]
+
+    for i in range(min(len(old_roles), 30)):
+        temp_role = old_roles[len(old_roles)-i-1]
+        print(temp_role['company_name'], datetime.fromtimestamp(temp_role['date_posted'], timezone.utc))
+
+    # if new_roles:
+    #     print(f"Found {len(new_roles)} new roles.")
+    #     # Send Discord messages for new roles
+    #     for role in new_roles:
+    #         if role['is_visible'] and role['active']:
+    #             embed = format_embed_message(role)
+    #             send_discord_embed(embed)
     else:
         print("No new roles found.")
 
